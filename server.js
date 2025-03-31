@@ -18,6 +18,11 @@ app.use(cors());
 app.post('/register', routes.register);
 app.post('/login', routes.login);
 app.post('/message', routes.sendMessage);
+// test playlogrund
+
+app.get('/', (req, res) => {
+    res.send('Hello, World!');
+});
 
 // Sunucuyu 3000 portunda dinlemeye başla
 app.listen(3000, () => {
