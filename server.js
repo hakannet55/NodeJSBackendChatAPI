@@ -1,10 +1,12 @@
 // server.js
-authenticateToken = require('./jwt_token');
+//authenticateToken = require('./jwt_token');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');  // CORS modülünü içe aktar
 
 const routes = require('./routes'); // API yollarını içe aktar
+const routersCatalogApp = require('./prodCatalAppRoutes');
+
 require('dotenv').config(); // .env dosyasını yükle
 
 // Express uygulaması oluştur
@@ -26,15 +28,15 @@ app.get('/', (req, res) => {
 
 //app.get('/rooms', routes.getRooms,authenticateToken);
 
-app.get('/messages/:userId', routes.getMessages,authenticateToken);
-app.get('/users', routes.getUsers,authenticateToken);
+app.post('/messages/:userId',routes.getMessages);
+app.post('/users',routes.getUsers);
 
 //app.get('/api/rooms/:roomId', routes.getRoomById);
 //app.get('/api/rooms/:roomId/users', routes.getRoomUsers);
 //app.get('/api/rooms/:roomId/messages', routes.getRoomMessages);
 
 
-app.get('prodductsApp/getAllProducts', routes.getAllProducts);
+app.get('prodductsApp/getAllProducts', routersCatalogApp.getAllProducts);
 //app.get('prodductsApp/addProduct', routes.getAllProducts);
 //app.get('prodductsApp/removeProduct', routes.getAllProducts);
 //app.get('prodductsApp/updateProduct', routes.getAllProducts);
