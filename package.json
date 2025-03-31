@@ -8,10 +8,11 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "express": "^4.17.1",
+    "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "express": "^4.17.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
