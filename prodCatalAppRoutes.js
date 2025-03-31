@@ -49,7 +49,7 @@ exports.getAllProducts = async (req, res) => {
   // Urunleri veritabanından al
   try {
     const products = await db.query('SELECT * FROM tbl_products');
-    if(products.length === 0){
+    if(!products || products.length === 0 ){
         return res.status(200).json(Array.from({length: 3}, () => [{
             id: 0,
             name: 'Urun yok'+ Math.floor(Math.random() * 1000),
