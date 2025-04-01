@@ -1,9 +1,9 @@
 // routes.js
 const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
-const db = require('../db'); // DB işlemleri için db.js
-
-const JWT_SECRET = process.env.JWT_SECRET || 'secretkey'; // JWT secret key
+const {db,tabNameEnums} = require('../db'); // DB işlemleri için db.js
+const auth = require('../jwt_token');
+const JWT_SECRET = auth.JWT_SECRET; // JWT secret key
 
 // Kullanıcı kaydı API'si
 exports.register = async (req, res) => {
@@ -14,7 +14,7 @@ exports.register = async (req, res) => {
 
   // Kullanıcıyı veritabanına kaydet
   try {
-    await db.query('INSERT INTO tbl_users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.query('INSERT INTO '+db.tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
     res.status(201).json({ message: 'Kullanıcı başarıyla kaydedildi' });
   } catch (err) {
     console.error(err);
@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   // Kullanıcıyı veritabanından al
-  const user = await db.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
+  const user = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users+' WHERE username = ?', [username]);
 
   if (!user || user.length === 0) {
     return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
@@ -47,8 +47,7 @@ exports.login = async (req, res) => {
 // getAllProducts
 exports.getAllProducts = async (req, res) => {
   // Urunleri veritabanından al
-     const tableName = 'tbl_products';
-    const products = await db.query('SELECT * FROM '+tableName);
+    const products = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_products);
     if(!products || products.length === 0 ){
         return res.status(200).json(Array.from({length: 3}, () => [{
             id: 0,

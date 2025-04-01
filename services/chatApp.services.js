@@ -2,8 +2,9 @@
 const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
 const db = require('../db'); // DB işlemleri için db.js
+const auth = require('../jwt_token');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secretkey'; // JWT secret key
+const JWT_SECRET = auth.JWT_SECRET; // JWT secret key
 
 // Kullanıcı kaydı API'si
 exports.register = async (req, res) => {
@@ -14,7 +15,7 @@ exports.register = async (req, res) => {
 
   // Kullanıcıyı veritabanına kaydet
   try {
-    await db.query('INSERT INTO tbl_users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.query('INSERT INTO '+db.tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
     res.status(201).json({ message: 'Kullanıcı başarıyla kaydedildi' });
   } catch (err) {
     console.error(err);
@@ -27,7 +28,7 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   // Kullanıcıyı veritabanından al
-  const user = await db.query('SELECT * FROM tbl_users WHERE username = ?', [username]);
+  const user = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users+' WHERE username = ?', [username]);
 
   if (!user || user.length === 0) {
     return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
@@ -47,28 +48,48 @@ exports.login = async (req, res) => {
 // Mesaj gönderme API'si
 exports.sendMessage = async (req, res) => {
   const { userId, message } = req.body;
-
+  // get uid from token
+  const senderId=auth.currentUserId(req);
   // Mesajı veritabanına kaydet
   try {
-    const result = await db.query('INSERT INTO tbl_messages (user_id, message) VALUES (?, ?)', [userId, message]);
-    res.status(201).json({ message: 'Mesaj gönderildi', data: result });
+    await db.query('INSERT INTO '+db.tabNameEnums.tbl_messages+' (userId, message,senderId) VALUES (?, ?,?)', [userId, message,senderId]);
+    res.status(201).json({ message: 'Mesaj basarıyla gonderildi' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Mesaj gönderme sırasında bir hata oluştu.' });
+    res.status(500).json({ error: 'Mesaj gonderme sırasında bir hata oluştu.' });
   }
 };
 
 // userId ile mesajları getirme API'si
 exports.getMessages = async (req, res) => {
   const userId = req.params.userId;
-
+  const senderId=auth.currentUserId(req);
   // Mesajları veritabanından al
   try {
-    const messages = await db.query('SELECT * FROM tbl_messages WHERE user_id = ?', [userId]);
-    res.status(200).json({ messages });
+    const targetUserData=await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users+' WHERE id = ?', [userId]);
+    const messages = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_messages+' WHERE userId = ? AND senderId = ?', [userId,senderId]);
+    if(targetUserData){
+    messages.forEach((message) => {
+      if(message.senderId==senderId){
+        message['targetName']=targetUserData[0].username;
+      }
+    })
+    }
+    res.status(200).json( messages );
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Mesajları getirme sırasında bir hata oluştu.' });
+  }
+};
+// tokenValidity
+exports.tokenValidity = async (req, res) => {
+  const token = req.headers.authorization;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.send('1');
+  } catch (err) {
+    console.error(err);
+    res.status(401).json({ error: 'Token gecerli degil' });
   }
 };
 
@@ -76,8 +97,8 @@ exports.getMessages = async (req, res) => {
 exports.getUsers = async (req, res) => {
   // Kullanıcıları veritabanından al
   try {
-    const users = await db.query('SELECT * FROM tbl_users');
-    res.status(200).json({ users });
+    const users = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users);
+    res.status(200).json(users.map(user => ({username:user.username,id:user.id})) );
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Kullanıcıları getirme sırasında bir hata oluştu.' });

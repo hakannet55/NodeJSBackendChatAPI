@@ -20,10 +20,11 @@ const createTables = () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS tbl_messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
+        userId INTEGER NOT NULL,
         message TEXT NOT NULL,
+        senderId TEXT NOT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES tbl_users(id)
+        FOREIGN KEY (userId) REFERENCES tbl_users(id)
       );
     `);
   });
@@ -42,4 +43,10 @@ const query = (sql, params = []) => {
   });
 };
 
-module.exports = { db, query };
+const tabNameEnums = {
+  tbl_products: 'tbl_products',
+  tbl_users: 'tbl_users',
+  tbl_messages: 'tbl_messages'
+};
+
+module.exports = { db, query,tabNameEnums };

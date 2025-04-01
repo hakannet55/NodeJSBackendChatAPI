@@ -28,9 +28,10 @@ app.get('/', (req, res) => {
 
 app.post('/register', chatApp.register);
 app.post('/login', chatApp.login);
+app.post('/sendmessages/:userId',chatApp.sendMessage);
 app.post('/messages/:userId',chatApp.getMessages);
 app.post('/users',chatApp.getUsers);
-
+app.post('/tokenValidity',chatApp.tokenValidity);
 //app.get('/api/rooms/:roomId', chatApp.getRoomById);
 //app.get('/api/rooms/:roomId/users', chatApp.getRoomUsers);
 //app.get('/api/rooms/:roomId/messages', chatApp.getRoomMessages);
