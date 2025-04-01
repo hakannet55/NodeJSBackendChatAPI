@@ -52,7 +52,7 @@ exports.getAllProducts = async (req, res) => {
         return res.status(200).json(Array.from({length: 3}, () => ({
             id: 0,
             name: "Urun yok"+ Math.floor(Math.random() * 1000),
-            price: Math.floor(Math.random() * 12000)+250+" TL",
+            price: Math.floor(Math.random() * 12000)+250,
             description: "Urun yok",
             image: "https://images.pexels.com/photos/2536965/pexels-photo-2536965.jpeg?auto=compress&cs=tinysrgb&w=400"
             })
