@@ -1,7 +1,7 @@
 // routes.js
 const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
-const db = require('./db'); // DB işlemleri için db.js
+const db = require('../db'); // DB işlemleri için db.js
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secretkey'; // JWT secret key
 
@@ -44,42 +44,18 @@ exports.login = async (req, res) => {
   res.status(200).json({ message: 'Giriş başarılı', token });
 };
 
-// Mesaj gönderme API'si
-exports.sendMessage = async (req, res) => {
-  const { userId, message } = req.body;
-
-  // Mesajı veritabanına kaydet
-  try {
-    const result = await db.query('INSERT INTO tbl_messages (user_id, message) VALUES (?, ?)', [userId, message]);
-    res.status(201).json({ message: 'Mesaj gönderildi', data: result });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Mesaj gönderme sırasında bir hata oluştu.' });
-  }
-};
-
-// userId ile mesajları getirme API'si
-exports.getMessages = async (req, res) => {
-  const userId = req.params.userId;
-
-  // Mesajları veritabanından al
-  try {
-    const messages = await db.query('SELECT * FROM tbl_messages WHERE user_id = ?', [userId]);
-    res.status(200).json({ messages });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Mesajları getirme sırasında bir hata oluştu.' });
-  }
-};
-
-// getUsers
-exports.getUsers = async (req, res) => {
-  // Kullanıcıları veritabanından al
-  try {
-    const users = await db.query('SELECT * FROM tbl_users');
-    res.status(200).json({ users });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Kullanıcıları getirme sırasında bir hata oluştu.' });
-  }
+// getAllProducts
+exports.getAllProducts = async (req, res) => {
+  // Urunleri veritabanından al
+     const tableName = 'tbl_products';
+    const products = await db.query('SELECT * FROM '+tableName);
+    if(!products || products.length === 0 ){
+        return res.status(200).json(Array.from({length: 3}, () => [{
+            id: 0,
+            name: 'Urun yok'+ Math.floor(Math.random() * 1000),
+            price: Math.floor(Math.random() * 12000)+250+' TL',
+            description: 'Urun yok',
+            image: 'https://images.pexels.com/photos/2536965/pexels-photo-2536965.jpeg?auto=compress&cs=tinysrgb&w=400'}]));
+    }
+    res.status(200).json({ products });
 };

@@ -4,8 +4,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');  // CORS modülünü içe aktar
 
-const routes = require('./routes'); // API yollarını içe aktar
-const routersCatalogApp = require('./prodCatalAppRoutes');
+const chatApp = require('./services/chatApp.services'); // API yollarını içe aktar
+const prodCatalApp = require('./services/prodCatalApp.services');
 
 require('dotenv').config(); // .env dosyasını yükle
 
@@ -18,9 +18,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 
-// API rotaları
-app.post('/register', routes.register);
-app.post('/login', routes.login);
+// API rotalarını tanımla
 // authenticateToken ?? kontrolü de eklencek
 app.get('/', (req, res) => {
     res.send('Hello, World!');
@@ -28,18 +26,20 @@ app.get('/', (req, res) => {
 
 //app.get('/rooms', routes.getRooms,authenticateToken);
 
-app.post('/messages/:userId',routes.getMessages);
-app.post('/users',routes.getUsers);
+app.post('/register', chatApp.register);
+app.post('/login', chatApp.login);
+app.post('/messages/:userId',chatApp.getMessages);
+app.post('/users',chatApp.getUsers);
 
-//app.get('/api/rooms/:roomId', routes.getRoomById);
-//app.get('/api/rooms/:roomId/users', routes.getRoomUsers);
-//app.get('/api/rooms/:roomId/messages', routes.getRoomMessages);
+//app.get('/api/rooms/:roomId', chatApp.getRoomById);
+//app.get('/api/rooms/:roomId/users', chatApp.getRoomUsers);
+//app.get('/api/rooms/:roomId/messages', chatApp.getRoomMessages);
 
 
-app.get('/prodductsApp/getAllProducts', routersCatalogApp.getAllProducts);
-//app.get('/prodductsApp/addProduct', routes.getAllProducts);
-//app.get('/prodductsApp/removeProduct', routes.getAllProducts);
-//app.get('/prodductsApp/updateProduct', routes.getAllProducts);
+app.get('/prodductsApp/getAllProducts', prodCatalApp.getAllProducts);
+//app.get('/prodductsApp/addProduct', prodCatalApp.getAllProducts);
+//app.get('/prodductsApp/removeProduct', prodCatalApp.getAllProducts);
+//app.get('/prodductsApp/updateProduct', prodCatalApp.getAllProducts);
 
 // Sunucuyu 3000 portunda dinlemeye başla
 app.listen(3000, () => {
