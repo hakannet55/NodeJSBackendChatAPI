@@ -49,12 +49,14 @@ exports.getAllProducts = async (req, res) => {
   // Urunleri veritabanından al
     const products = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_products);
     if(!products || products.length === 0 ){
-        return res.status(200).json(Array.from({length: 3}, () => {
+        return res.status(200).json(Array.from({length: 3}, () => ({
             id: 0,
-            name: 'Urun yok'+ Math.floor(Math.random() * 1000),
-            price: Math.floor(Math.random() * 12000)+250+' TL',
-            description: 'Urun yok',
-            image: 'https://images.pexels.com/photos/2536965/pexels-photo-2536965.jpeg?auto=compress&cs=tinysrgb&w=400'}));
+            name: "Urun yok"+ Math.floor(Math.random() * 1000),
+            price: Math.floor(Math.random() * 12000)+250+" TL",
+            description: "Urun yok",
+            image: "https://images.pexels.com/photos/2536965/pexels-photo-2536965.jpeg?auto=compress&cs=tinysrgb&w=400"
+            })
+            ));
     }
     res.status(200).json({ products });
 };
