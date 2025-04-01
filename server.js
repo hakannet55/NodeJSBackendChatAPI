@@ -36,10 +36,10 @@ app.post('/users',routes.getUsers);
 //app.get('/api/rooms/:roomId/messages', routes.getRoomMessages);
 
 
-app.get('prodductsApp/getAllProducts', routersCatalogApp.getAllProducts);
-//app.get('prodductsApp/addProduct', routes.getAllProducts);
-//app.get('prodductsApp/removeProduct', routes.getAllProducts);
-//app.get('prodductsApp/updateProduct', routes.getAllProducts);
+app.get('/prodductsApp/getAllProducts', routersCatalogApp.getAllProducts);
+//app.get('/prodductsApp/addProduct', routes.getAllProducts);
+//app.get('/prodductsApp/removeProduct', routes.getAllProducts);
+//app.get('/prodductsApp/updateProduct', routes.getAllProducts);
 
 // Sunucuyu 3000 portunda dinlemeye başla
 app.listen(3000, () => {
