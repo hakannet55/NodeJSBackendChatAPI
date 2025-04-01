@@ -4,12 +4,17 @@ const sqlite3 = require('sqlite3').verbose();  // SQLite3 modülünü içe aktar
 // Veritabanını in-memory olarak başlatıyoruz
 const db = new sqlite3.Database(':memory:');
 
+const tabNameEnums = {
+  tbl_products: 'tbl_products',
+  tbl_users: 'tbl_users',
+  tbl_messages: 'tbl_messages'
+};
 // Tabloları oluştur
 const createTables = () => {
   db.serialize(() => {
     // Kullanıcılar tablosu
     db.run(`
-      CREATE TABLE IF NOT EXISTS tbl_users (
+      CREATE TABLE IF NOT EXISTS ${tabNameEnums.tbl_users} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
@@ -18,7 +23,7 @@ const createTables = () => {
 
     // Mesajlar tablosu
     db.run(`
-      CREATE TABLE IF NOT EXISTS tbl_messages (
+      CREATE TABLE IF NOT EXISTS ${tabNameEnums.tbl_messages} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         userId INTEGER NOT NULL,
         message TEXT NOT NULL,
@@ -28,6 +33,16 @@ const createTables = () => {
       );
     `);
   });
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ${tabNameEnums.tbl_products} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      target TEXT NOT NULL,
+      name TEXT NOT NULL,
+      price TEXT NOT NULL,
+      description TEXT NOT NULL,
+      image TEXT NOT NULL
+    );
+  `);
 };
 
 // Veritabanı bağlantısı ve tabloları oluşturma
@@ -43,10 +58,5 @@ const query = (sql, params = []) => {
   });
 };
 
-const tabNameEnums = {
-  tbl_products: 'tbl_products',
-  tbl_users: 'tbl_users',
-  tbl_messages: 'tbl_messages'
-};
 
 module.exports = { db, query,tabNameEnums };

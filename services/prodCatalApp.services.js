@@ -1,7 +1,7 @@
 // routes.js
 const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
-const {db,tabNameEnums} = require('../db'); // DB işlemleri için db.js
+const db = require('../db'); // DB işlemleri için db.js
 const auth = require('../jwt_token');
 const JWT_SECRET = auth.JWT_SECRET; // JWT secret key
 
