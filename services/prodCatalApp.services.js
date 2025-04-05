@@ -44,6 +44,51 @@ exports.login = async (req, res) => {
   res.status(200).json({ message: 'Giriş başarılı', token });
 };
 
+exports.getMagazalar = async (req, res) => {
+    // Kullanıcıları veritabanından al
+    try {
+      const magazalar = await db.getData(db.tabNameEnums.tbl_magazalar);
+      res.status(200).json(magazalar);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Kullanıcıları getirme sırasında bir hata oluştu.' });
+    }
+}
+
+exports.crud = async (req, res) => {
+if(req.body.isCrud===1){
+    const { tname,operator,data,itemId} = sqlInjectFilterObject( req.body);
+    // Kullanıcıyı veritabanından al
+    // token control
+    console.log(sqlInjectFilterObject( req.body));
+    auth.authenticateToken(req, res, async () => {
+        try {
+        const tnameexist=await db.query('SHOW TABLES LIKE ?', [tname]);
+        if(tnameexist){
+               if(operator === "add"){
+                   await db.query('INSERT INTO '+tname+' SET ? ', [data]);
+               }else if(operator === "update"){
+                   await db.query('UPDATE '+tname+' SET ? WHERE id = ?', [data,itemId]);
+               }else if(operator === "delete"){
+                   await db.query('DELETE FROM '+tname+' WHERE id = ?', [itemId]);
+               }else{
+                   throw new Error('Operator bulunamadı');
+               }
+               res.status(200).json({ result: 1 });
+        }else{
+            throw new Error('Tablo bulunamadı');
+        }
+
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Kullanıcı kaydederken bir hata oluştu.' });
+        }
+    });
+}
+
+
+};
+
 // getAllProducts
 exports.getAllProducts = async (req, res) => {
   // Urunleri veritabanından al

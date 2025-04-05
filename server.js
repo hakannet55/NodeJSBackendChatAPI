@@ -38,6 +38,8 @@ app.post('/tokenValidity',chatApp.tokenValidity);
 
 
 app.get('/prodductsApp/getAllProducts', prodCatalApp.getAllProducts);
+app.get('/prodductsApp/getMagazalar', prodCatalApp.getMagazalar);
+app.post('/prodductsApp/crud', prodCatalApp.crud);
 //app.get('/prodductsApp/addProduct', prodCatalApp.getAllProducts);
 //app.get('/prodductsApp/removeProduct', prodCatalApp.getAllProducts);
 //app.get('/prodductsApp/updateProduct', prodCatalApp.getAllProducts);
