@@ -1,9 +1,10 @@
 // routes.js
 const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
-const db = require('../db'); // DB işlemleri için db.js
 const auth = require('../jwt_token');
-
+const tool = require("../db");
+const db=tool.db;
+const tabNameEnums=tool.tabNameEnums;
 const JWT_SECRET = auth.JWT_SECRET; // JWT secret key
 
 // Kullanıcı kaydı API'si
@@ -15,7 +16,7 @@ exports.register = async (req, res) => {
 
   // Kullanıcıyı veritabanına kaydet
   try {
-    await db.query('INSERT INTO '+db.tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.query('INSERT INTO '+tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
     res.status(201).json({ message: 'Kullanıcı başarıyla kaydedildi' });
   } catch (err) {
     console.error(err);
@@ -28,7 +29,7 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   // Kullanıcıyı veritabanından al
-  const user = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users+' WHERE username = ?', [username]);
+  const user = await db.query('SELECT * FROM '+tabNameEnums.tbl_users+' WHERE username = ?', [username]);
 
   if (!user || user.length === 0) {
     return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
@@ -52,7 +53,7 @@ exports.sendMessage = async (req, res) => {
   const senderId=auth.currentUserId(req);
   // Mesajı veritabanına kaydet
   try {
-    await db.query('INSERT INTO '+db.tabNameEnums.tbl_messages+' (userId, message,senderId) VALUES (?, ?,?)', [userId, message,senderId]);
+    await db.query('INSERT INTO '+tabNameEnums.tbl_messages+' (userId, message,senderId) VALUES (?, ?,?)', [userId, message,senderId]);
     res.status(201).json({ message: 'Mesaj basarıyla gonderildi' });
   } catch (err) {
     console.error(err);
@@ -66,8 +67,8 @@ exports.getMessages = async (req, res) => {
   const senderId=auth.currentUserId(req);
   // Mesajları veritabanından al
   try {
-    const targetUserData=await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users+' WHERE id = ?', [userId]);
-    const messages = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_messages+' WHERE userId = ? AND senderId = ?', [userId,senderId]);
+    const targetUserData=await db.query('SELECT * FROM '+tabNameEnums.tbl_users+' WHERE id = ?', [userId]);
+    const messages = await db.query('SELECT * FROM '+tabNameEnums.tbl_messages+' WHERE userId = ? AND senderId = ?', [userId,senderId]);
     if(targetUserData){
     messages.forEach((message) => {
       if(message.senderId==senderId){
@@ -97,7 +98,7 @@ exports.tokenValidity = async (req, res) => {
 exports.getUsers = async (req, res) => {
   // Kullanıcıları veritabanından al
   try {
-    const users = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users);
+    const users = await db.query('SELECT * FROM '+tabNameEnums.tbl_users);
     res.status(200).json(users.map(user => ({username:user.username,id:user.id})) );
   } catch (err) {
     console.error(err);

@@ -3,7 +3,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');  // CORS modülünü içe aktar
-
+const db = require('./db');
 const chatApp = require('./services/chatApp.services'); // API yollarını içe aktar
 const prodCatalApp = require('./services/prodCatalApp.services');
 
@@ -35,12 +35,11 @@ app.post('/tokenValidity',chatApp.tokenValidity);
 //app.get('/api/rooms/:roomId', chatApp.getRoomById);
 //app.get('/api/rooms/:roomId/users', chatApp.getRoomUsers);
 //app.get('/api/rooms/:roomId/messages', chatApp.getRoomMessages);
-
-
-app.get('/prodductsApp/getAllProducts', prodCatalApp.getAllProducts);
-app.get('/prodductsApp/getMagazalar', prodCatalApp.getMagazalar);
-app.post('/prodductsApp/crud', prodCatalApp.crud);
-//app.get('/prodductsApp/addProduct', prodCatalApp.getAllProducts);
+const prefix=db.prefix;
+app.get('/'+prefix+'/getAllProducts', prodCatalApp.getAllProducts);
+app.get('/'+prefix+'/stores', prodCatalApp.getStores);
+app.post('/'+prefix+'/crud', prodCatalApp.crud);
+app.post('/'+prefix+'/login', prodCatalApp.login);
 //app.get('/prodductsApp/removeProduct', prodCatalApp.getAllProducts);
 //app.get('/prodductsApp/updateProduct', prodCatalApp.getAllProducts);
 

@@ -1,10 +1,11 @@
 // routes.js
 const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
-const db = require('../db'); // DB işlemleri için db.js
+const tool = require('../db'); // DB işlemleri için db.js
 const auth = require('../jwt_token');
 const JWT_SECRET = auth.JWT_SECRET; // JWT secret key
-
+const db=tool.db;
+const tabNameEnums=tool.tabNameEnums;
 // Kullanıcı kaydı API'si
 exports.register = async (req, res) => {
   const { username, password } = req.body;
@@ -14,7 +15,7 @@ exports.register = async (req, res) => {
 
   // Kullanıcıyı veritabanına kaydet
   try {
-    await db.query('INSERT INTO '+db.tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.query('INSERT INTO '+tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
     res.status(201).json({ message: 'Kullanıcı başarıyla kaydedildi' });
   } catch (err) {
     console.error(err);
@@ -27,31 +28,39 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   // Kullanıcıyı veritabanından al
-  const user = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_users+' WHERE username = ?', [username]);
+    //console.log(await db.query('SELECT * FROM '+tabNameEnums.tbl_prod_users));
+try {
+    const userRes = await db.query('SELECT * FROM '+tabNameEnums.tbl_prod_users+' WHERE username = $1', [username]);
+    const user=userRes.rows;
+    console.log(user);
+    if (!user || user.length === 0) {
+        return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre1' });
+    }
 
-  if (!user || user.length === 0) {
-    return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
-  }
+    // Şifreyi kontrol et
+    const isMatch = bcrypt.compareSync(password, user[0].password);
+    if (!isMatch) {
+        return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre2' });
+    }
 
-  // Şifreyi kontrol et
-  const isMatch = bcrypt.compareSync(password, user[0].password);
-  if (!isMatch) {
-    return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
-  }
+    // JWT token oluştur
+    const token = jwt.sign({ id: user[0].id, username: user[0].username }, JWT_SECRET, { expiresIn: '1h' });
+    res.status(200).json({ message: 'Giriş başarılı', token });
+    }catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Kullanıcı kaydederken bir hata oluştu.' });
 
-  // JWT token oluştur
-  const token = jwt.sign({ id: user[0].id, username: user[0].username }, JWT_SECRET, { expiresIn: '1h' });
-  res.status(200).json({ message: 'Giriş başarılı', token });
+    }
+
 };
 
-exports.getMagazalar = async (req, res) => {
-    // Kullanıcıları veritabanından al
+exports.getStores = async (req, res) => {
     try {
-      const magazalar = await db.getData(db.tabNameEnums.tbl_magazalar);
-      res.status(200).json(magazalar);
+      const stores =await db.getData(tabNameEnums.tbl_stores);
+      res.status(200).json(stores.rows);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Kullanıcıları getirme sırasında bir hata oluştu.' });
+      res.status(500).json({ error: 'getirme sırasında bir hata oluştu.' });
     }
 }
 
@@ -92,7 +101,7 @@ if(req.body.isCrud===1){
 // getAllProducts
 exports.getAllProducts = async (req, res) => {
   // Urunleri veritabanından al
-    const products = await db.query('SELECT * FROM '+db.tabNameEnums.tbl_products);
+    const products = await db.query('SELECT * FROM '+tabNameEnums.tbl_products);
     if(!products || products.length === 0 ){
         return res.status(200).json(Array.from({length: 3}, () => ({
             id: 0,
