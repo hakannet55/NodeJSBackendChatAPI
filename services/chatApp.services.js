@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs'); // Şifreyi hash'lemek için bcrypt
 const jwt = require('jsonwebtoken'); // JWT için
 const auth = require('../jwt_token');
 const tool = require("../db");
+const {getData} = require("../db");
 const db=tool.db;
 const tabNameEnums=tool.tabNameEnums;
 const JWT_SECRET = auth.JWT_SECRET; // JWT secret key
@@ -16,8 +17,8 @@ exports.register = async (req, res) => {
 
   // Kullanıcıyı veritabanına kaydet
   try {
-    await db.query('INSERT INTO '+tabNameEnums.tbl_users+' (username, password) VALUES (?, ?)', [username, hashedPassword]);
-    res.status(201).json({ message: 'Kullanıcı başarıyla kaydedildi' });
+    await tool.setData(tabNameEnums.tbl_users,{username, password:hashedPassword});
+    res.status(201).json({ error: "" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Kullanıcı kaydederken bir hata oluştu.' });
@@ -29,20 +30,20 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   // Kullanıcıyı veritabanından al
-  const user = await db.query('SELECT * FROM '+tabNameEnums.tbl_users+' WHERE username = ?', [username]);
-
-  if (!user || user.length === 0) {
+  let result = await db.query('SELECT * FROM '+tabNameEnums.tbl_users+' WHERE username = $1', [username]);
+  if (!result || result.rowCount === 0) {
     return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
   }
+  const user = result.rows[0];
 
   // Şifreyi kontrol et
-  const isMatch = bcrypt.compareSync(password, user[0].password);
+  const isMatch = bcrypt.compareSync(password, user.password);
   if (!isMatch) {
     return res.status(401).json({ error: 'Geçersiz kullanıcı adı veya şifre' });
   }
 
   // JWT token oluştur
-  const token = jwt.sign({ id: user[0].id, username: user[0].username }, JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
   res.status(200).json({ message: 'Giriş başarılı', token });
 };
 
@@ -53,8 +54,12 @@ exports.sendMessage = async (req, res) => {
   const senderId=auth.currentUserId(req);
   // Mesajı veritabanına kaydet
   try {
-    await db.query('INSERT INTO '+tabNameEnums.tbl_messages+' (userId, message,senderId) VALUES (?, ?,?)', [userId, message,senderId]);
-    res.status(201).json({ message: 'Mesaj basarıyla gonderildi' });
+    let result=await tool.setData(tabNameEnums.tbl_messages,{senderId,message,targetId:userId});
+    if(!result || result.rowCount === 0) {
+      res.status(500).json({error: 'Mesaj gonderme sırasında bir hata oluştu.'});
+      return;
+    }
+    res.status(201).json({ error: '' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Mesaj gonderme sırasında bir hata oluştu.' });
@@ -65,16 +70,24 @@ exports.sendMessage = async (req, res) => {
 exports.getMessages = async (req, res) => {
   const userId = req.params.userId;
   const senderId=auth.currentUserId(req);
+  console.log("senderId",senderId,"userId",userId);
   // Mesajları veritabanından al
   try {
-    const targetUserData=await db.query('SELECT * FROM '+tabNameEnums.tbl_users+' WHERE id = ?', [userId]);
-    const messages = await db.query('SELECT * FROM '+tabNameEnums.tbl_messages+' WHERE userId = ? AND senderId = ?', [userId,senderId]);
+    const dbResUsers=await tool.getData(tabNameEnums.tbl_users);
+    const dbRes = await tool.getData(tabNameEnums.tbl_messages, true,{targetId:+userId,senderId:+senderId},{targetId:+senderId,senderId:+userId});
+    if(!dbRes || !dbResUsers) {
+      res.status(500).json({error: 'Mesajları getirme sırasında bir hata oluştu.'});
+      return;
+    }
+    let messages=dbRes.rows;
+    const targetUserData=dbResUsers.rows.reduce((acc, user) => ({['_'+user.id]: user, ...acc}), {});
+    console.log(targetUserData);
     if(targetUserData){
-    messages.forEach((message) => {
-      if(message.senderId==senderId){
-        message['targetName']=targetUserData[0].username;
-      }
-    })
+      messages=messages.map((line1) => {
+        const find=targetUserData['_'+line1.targetId];
+        if(!find) return line1;
+        return {...line1, targetName:targetUserData[line1.targetId].username};
+     })
     }
     res.status(200).json( messages );
   } catch (err) {
@@ -98,8 +111,8 @@ exports.tokenValidity = async (req, res) => {
 exports.getUsers = async (req, res) => {
   // Kullanıcıları veritabanından al
   try {
-    const users = await db.query('SELECT * FROM '+tabNameEnums.tbl_users);
-    res.status(200).json(users.map(user => ({username:user.username,id:user.id})) );
+    const users = await getData(tabNameEnums.tbl_users);
+    res.status(200).json(users.rows.map(user => ({username:user.username,id:user.id})) );
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Kullanıcıları getirme sırasında bir hata oluştu.' });
