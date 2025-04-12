@@ -40,6 +40,7 @@ app.get('/'+prefix+'/getAllProducts', prodCatalApp.getAllProducts);
 app.get('/'+prefix+'/stores', prodCatalApp.getStores);
 app.post('/'+prefix+'/crud', prodCatalApp.crud);
 app.post('/'+prefix+'/login', prodCatalApp.login);
+app.post('/'+prefix+'/tokenValidity', prodCatalApp.tokenValidity);
 //app.get('/prodductsApp/removeProduct', prodCatalApp.getAllProducts);
 //app.get('/prodductsApp/updateProduct', prodCatalApp.getAllProducts);
 

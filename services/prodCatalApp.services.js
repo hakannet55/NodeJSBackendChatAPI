@@ -114,3 +114,14 @@ exports.getAllProducts = async (req, res) => {
     }
     res.status(200).json({ products });
 };
+
+exports.tokenValidity = async (req, res) => {
+    const token = req.headers.authorization;
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        res.send('1');
+    } catch (err) {
+        console.error(err);
+        res.status(401).json({ error: 'Token gecerli degil' });
+    }
+};
