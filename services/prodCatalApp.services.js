@@ -64,14 +64,31 @@ exports.getStores = async (req, res) => {
     }
 }
 
+function cleanSanitizeObjectValues(data) {
+    return Object.keys(data).reduce((acc, key) => {
+        let value = data[key];
+        if (typeof value === 'string') {
+            // SQL injection saldırılarına karşı koruma
+            value = value.replace(/[^a-zA-Z0-9\s]/g, '');
+            value = value.replace(/'/g, "''");
+            value = value.replace(/"/g, '""');
+            acc[key] = value.trim();
+        } else {
+            acc[key] = value;
+        }
+        return acc;
+    });
+}
+
 exports.crud = async (req, res) => {
-if(req.body.isCrud===1){
+if(+req.body.isCrud===1){
     const { tname,operator,itemId} = sqlInjectFilterObject( req.body);
     let data=req.body.data;
     // Kullanıcıyı veritabanından al
     // token control
     if(typeof data !== 'object'){
         data=JSON.parse(data);
+        data=cleanSanitizeObjectValues(data);
     }
     console.log(sqlInjectFilterObject( req.body));
     auth.authenticateToken(req, res, async () => {
