@@ -66,9 +66,13 @@ exports.getStores = async (req, res) => {
 
 exports.crud = async (req, res) => {
 if(req.body.isCrud===1){
-    const { tname,operator,data,itemId} = sqlInjectFilterObject( req.body);
+    const { tname,operator,itemId} = sqlInjectFilterObject( req.body);
+    let data=req.body.data;
     // Kullanıcıyı veritabanından al
     // token control
+    if(typeof data !== 'object'){
+        data=JSON.parse(data);
+    }
     console.log(sqlInjectFilterObject( req.body));
     auth.authenticateToken(req, res, async () => {
         try {
