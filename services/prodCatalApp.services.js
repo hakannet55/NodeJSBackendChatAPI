@@ -56,7 +56,7 @@ try {
 
 exports.getStores = async (req, res) => {
     try {
-      const stores =await db.getData(tabNameEnums.tbl_stores);
+      const stores =await tool.getData(tabNameEnums.tbl_stores);
       res.status(200).json(stores.rows);
     } catch (err) {
       console.error(err);
