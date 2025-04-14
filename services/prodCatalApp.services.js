@@ -82,7 +82,7 @@ function cleanSanitizeObjectValues(data) {
 
 exports.crud = async (req, res) => {
     if (+req.body.isCrud === 1) {
-        const {tname, operator, itemId} = sqlInjectFilterObject(req.body);
+        const {tname, operator, itemId} = tool.sqlInjectFilterObject(req.body);
         let data = req.body.data;
         // Kullanıcıyı veritabanından al
         // token control
@@ -91,7 +91,7 @@ exports.crud = async (req, res) => {
             data = cleanSanitizeObjectValues(data);
         }
         console.log("test1");
-        console.log(sqlInjectFilterObject(req.body));
+        console.log(tool.sqlInjectFilterObject(req.body));
         auth.authenticateToken(req, res, async () => {
             console.log("test2");
             try {
